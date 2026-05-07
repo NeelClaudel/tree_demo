@@ -552,9 +552,10 @@ export default function InteractiveTree() {
       const isSapling = t < s.saplingFinishTime + 0.3;
 
       // ===== WIND =====
-      const windDamp = isSapling ? 0 : 1;
+      const motionScale = s.profile.motionScale;
+      const windDamp = isSapling ? 0 : motionScale;
       const baseWind = (Math.sin(t * 0.3) * 0.15 + Math.sin(t * 0.7) * 0.08) * windDamp;
-      if (!isSapling && t > s.wind.gustUntil && Math.random() < 0.005) {
+      if (!isSapling && t > s.wind.gustUntil && Math.random() < 0.005 * motionScale * motionScale) {
         s.wind.gustDuration = 1.2 + Math.random() * 2.0;
         s.wind.gustUntil = t + s.wind.gustDuration;
         s.wind.gustStrength = (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.6);
@@ -569,7 +570,7 @@ export default function InteractiveTree() {
       s.wind.value = wind;
 
       // ===== SEASONS =====
-      const seasonPhase = (t / SEASON_PERIOD) % 1;
+      const seasonPhase = (t * motionScale / SEASON_PERIOD) % 1;
       const season = seasonAt(seasonPhase);
       if (s.prevWinter && !season.winterMode && season.springBoost) {
         for (const leaf of s.leaves) {
@@ -581,7 +582,7 @@ export default function InteractiveTree() {
       s.prevWinter = season.winterMode;
 
       // ===== DAY / NIGHT =====
-      const dayPhase = (t / DAY_PERIOD) % 1;
+      const dayPhase = (t * motionScale / DAY_PERIOD) % 1;
       const day = dayAt(dayPhase);
       const isDay = day.isDay;
       const nightFactor = 1 - isDay;
@@ -764,7 +765,7 @@ export default function InteractiveTree() {
       ctx.globalAlpha = 1;
 
       // ===== BIRDS — spawn, fly, spook leaves, draw =====
-      if (!isSapling && t > s.nextBirdAt) {
+      if (!isSapling && s.profile.birdsEnabled && t > s.nextBirdAt) {
         spawnBirdFlock();
         s.nextBirdAt = t + BIRD_INTERVAL_MIN + Math.random() * (BIRD_INTERVAL_MAX - BIRD_INTERVAL_MIN);
       }
