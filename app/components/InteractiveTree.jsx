@@ -211,6 +211,8 @@ export default function InteractiveTree() {
     tempCanvas: null,
     width: 0,
     height: 0,
+    safeTop: 0,
+    safeBottom: 0,
     profile: null,
     baseX: 0,
     baseY: 0,
@@ -238,8 +240,9 @@ export default function InteractiveTree() {
       let maxFinishTime = 0;
 
       const baseX = s.width / 2;
-      const baseY = s.height - 10;
-      const initialLength = Math.min(s.height * 0.18, 130);
+      const baseY = s.height - s.safeBottom - 10;
+      const usableHeight = Math.max(s.height - s.safeTop - s.safeBottom, 1);
+      const initialLength = Math.min(usableHeight * 0.18, 130);
       s.baseX = baseX;
       s.baseY = baseY;
 
@@ -326,7 +329,7 @@ export default function InteractiveTree() {
           const slot = (i + 0.5) / count;
           const jitter = (Math.random() - 0.5) * (1 / count) * 0.6;
           const x = lerp(-0.08, 1.08, slot + jitter) * s.width;
-          const y = s.height - 4 + Math.random() * 6;
+          const y = s.height - s.safeBottom - 4 + Math.random() * 6;
           const scale = lerp(cfg.scaleMin, cfg.scaleMax, Math.random());
           trees.push(generateBgTreeData(x, y, scale, cfg.depth));
         }
@@ -386,6 +389,13 @@ export default function InteractiveTree() {
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       s.width = canvas.offsetWidth;
       s.height = canvas.offsetHeight;
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);';
+      document.body.appendChild(probe);
+      const cs = getComputedStyle(probe);
+      s.safeTop = parseFloat(cs.paddingTop) || 0;
+      s.safeBottom = parseFloat(cs.paddingBottom) || 0;
+      document.body.removeChild(probe);
       s.profile = qualityProfile({
         width: s.width,
         height: s.height,
@@ -925,7 +935,7 @@ export default function InteractiveTree() {
       }
 
       // ===== FALLING PHYSICS =====
-      const groundY = s.height - 4;
+      const groundY = s.height - s.safeBottom - 4;
       s.falling = s.falling.filter((leaf) => {
         leaf.vy += 0.035;
         leaf.vx += Math.sin(t * 2.5 + leaf.phase) * 0.06 + wind * 0.06;
