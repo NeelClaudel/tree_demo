@@ -37,6 +37,33 @@ const BG_LAYERS_CONFIG = [
 ];
 
 // ============================================================================
+// RESPONSIVE QUALITY PROFILE
+// ============================================================================
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+export function qualityProfile({ width, height, dpr, reducedMotion }) {
+  const m = Math.min(width, height);
+
+  let tier;
+  if (m < 600) {
+    tier = { dprCap: 2, treeMaxDepth: 5, fireflyCount: 14, starCount: 80, bgLayerScale: 0.6, blurScale: 0.6 };
+  } else if (m < 1000) {
+    tier = { dprCap: 2, treeMaxDepth: 6, fireflyCount: 22, starCount: 120, bgLayerScale: 0.85, blurScale: 0.85 };
+  } else {
+    tier = { dprCap: 3, treeMaxDepth: 7, fireflyCount: 28, starCount: 160, bgLayerScale: 1, blurScale: 1 };
+  }
+
+  return {
+    ...tier,
+    bendRadius: clamp(m * 0.18, 90, 200),
+    detachRadius: clamp(m * 0.06, 32, 70),
+    birdSpookRadius: clamp(m * 0.08, 45, 90),
+    motionScale: reducedMotion ? 0.45 : 1,
+    birdsEnabled: !reducedMotion,
+  };
+}
+
+// ============================================================================
 // SEASONS
 // ============================================================================
 const SEASON_STOPS = [
