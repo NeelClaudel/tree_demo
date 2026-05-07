@@ -5,8 +5,6 @@ import { useEffect, useRef } from 'react';
 // ============================================================================
 // CONFIG — tweak freely
 // ============================================================================
-const BEND_RADIUS = 160;
-const DETACH_RADIUS = 55;
 const RESPAWN_MIN = 3.0;
 const RESPAWN_MAX = 8.0;
 const GROW_DURATION = 1.4;
@@ -25,7 +23,6 @@ const LEAF_BLOOM_DELAY_MAX = 0.60;
 // Birds
 const BIRD_INTERVAL_MIN = 20;     // seconds between flocks
 const BIRD_INTERVAL_MAX = 50;
-const BIRD_SPOOK_RADIUS = 70;
 const BIRD_SPOOK_CHANCE = 0.05;   // per leaf per frame inside radius
 
 // Parallax background layers — farthest first
@@ -603,12 +600,12 @@ export default function InteractiveTree() {
           const dx = midX - m.x;
           const dy = midY - m.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < BEND_RADIUS) {
+          if (dist < s.profile.bendRadius) {
             const bdx = Math.cos(angle);
             const bdy = Math.sin(angle);
             const perp = bdx * dy - bdy * dx;
             const norm = perp / Math.max(dist, 0.001);
-            const force = 1 - dist / BEND_RADIUS;
+            const force = 1 - dist / s.profile.bendRadius;
             const flex = 0.06 + b.depth * 0.05;
             angle += norm * force * flex;
           }
@@ -757,7 +754,7 @@ export default function InteractiveTree() {
           const dx = leaf.x - bird.x;
           const dy = leaf.y - bird.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < BIRD_SPOOK_RADIUS && Math.random() < BIRD_SPOOK_CHANCE) {
+          if (dist < s.profile.birdSpookRadius && Math.random() < BIRD_SPOOK_CHANCE) {
             leaf.attached = false;
             const inv = dist < 1 ? 1 : 1 / dist;
             leaf.vx = dx * inv * 1.5 + bird.vx * 0.35;
@@ -865,7 +862,7 @@ export default function InteractiveTree() {
           const dx = leaf.x - m.x;
           const dy = leaf.y - m.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < DETACH_RADIUS) {
+          if (dist < s.profile.detachRadius) {
             leaf.attached = false;
             const inv = dist < 0.001 ? 1 : 1 / dist;
             leaf.vx = dx * inv * 1.8 + (Math.random() - 0.5) * 0.8;
