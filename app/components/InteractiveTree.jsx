@@ -196,7 +196,7 @@ function generateBgTreeData(baseX, baseY, scale, maxDepth) {
 // ============================================================================
 export default function InteractiveTree() {
   const canvasRef = useRef(null);
-  const pointerRef = useRef({ x: -9999, y: -9999, active: false });
+  const pointerRef = useRef({ x: -9999, y: -9999, active: false, buttonsDown: false });
   const stateRef = useRef({
     branches: [],
     leaves: [],
@@ -411,20 +411,32 @@ export default function InteractiveTree() {
     // ------------------------------------------------------------------------
     // POINTER
     // ------------------------------------------------------------------------
-    const updatePointer = (e) => {
+    const updatePointerXY = (e) => {
       const rect = canvas.getBoundingClientRect();
       pointerRef.current.x = e.clientX - rect.left;
       pointerRef.current.y = e.clientY - rect.top;
-      pointerRef.current.active = true;
     };
-    const onPointerMove = (e) => updatePointer(e);
+
+    const onPointerMove = (e) => {
+      updatePointerXY(e);
+      if (e.pointerType === 'mouse') {
+        pointerRef.current.active = true;
+      } else {
+        pointerRef.current.active = pointerRef.current.buttonsDown;
+      }
+    };
+
     const onPointerLeave = () => {
       pointerRef.current.active = false;
+      pointerRef.current.buttonsDown = false;
       pointerRef.current.x = -9999;
       pointerRef.current.y = -9999;
     };
+
     const onPointerDown = (e) => {
-      updatePointer(e);
+      updatePointerXY(e);
+      pointerRef.current.buttonsDown = true;
+      pointerRef.current.active = true;
       const s = stateRef.current;
       const cx = pointerRef.current.x;
       const cy = pointerRef.current.y;
@@ -441,13 +453,26 @@ export default function InteractiveTree() {
         leaf.rotSpeed = (Math.random() - 0.5) * 0.18;
         s.falling.push(leaf);
       }
-      // trigger visible branch shake
       s.shakeRequested = true;
+    };
+
+    const onPointerUp = (e) => {
+      pointerRef.current.buttonsDown = false;
+      if (e.pointerType !== 'mouse') {
+        pointerRef.current.active = false;
+      }
+    };
+
+    const onPointerCancel = () => {
+      pointerRef.current.buttonsDown = false;
+      pointerRef.current.active = false;
     };
 
     canvas.addEventListener('pointermove', onPointerMove);
     canvas.addEventListener('pointerleave', onPointerLeave);
     canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerCancel);
     canvas.style.touchAction = 'none';
 
     const recycleLeafToRespawn = (leaf, t, fastSpring) => {
@@ -1005,6 +1030,8 @@ export default function InteractiveTree() {
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerCancel);
     };
   }, []);
 
