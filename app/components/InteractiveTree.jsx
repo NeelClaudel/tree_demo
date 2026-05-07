@@ -1037,7 +1037,7 @@ export default function InteractiveTree() {
   }, []);
 
   return (
-    <div style={{ width: '100%', height: '100vh', position: 'relative', background: '#060403', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100dvh', position: 'relative', background: '#060403', overflow: 'hidden' }}>
       <canvas
         ref={canvasRef}
         style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
