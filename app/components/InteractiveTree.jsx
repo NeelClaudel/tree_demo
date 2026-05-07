@@ -14,8 +14,6 @@ const GROW_DURATION = 1.4;
 const SEASON_PERIOD = 90;
 const DAY_PERIOD = 60;
 
-const FIREFLY_COUNT = 28;
-const STAR_COUNT = 160;
 const PILE_FADE_MIN = 8;
 const PILE_FADE_MAX = 18;
 
@@ -216,7 +214,7 @@ export default function InteractiveTree() {
     tempCanvas: null,
     width: 0,
     height: 0,
-    maxDepth: 7,
+    profile: null,
     baseX: 0,
     baseY: 0,
     wind: { value: 0, gustUntil: 0, gustDuration: 0, gustStrength: 0 },
@@ -271,7 +269,7 @@ export default function InteractiveTree() {
         });
         const myIdx = s.branches.length - 1;
 
-        if (depth >= s.maxDepth || length < 6) {
+        if (depth >= s.profile.treeMaxDepth || length < 6) {
           const leafCount = 4 + Math.floor(Math.random() * 4);
           for (let i = 0; i < leafCount; i++) {
             const ox = (Math.random() - 0.5) * 18;
@@ -326,10 +324,10 @@ export default function InteractiveTree() {
       s.bgLayers = [];
       for (const cfg of BG_LAYERS_CONFIG) {
         const trees = [];
-        for (let i = 0; i < cfg.count; i++) {
-          const slot = (i + 0.5) / cfg.count;
-          const jitter = (Math.random() - 0.5) * (1 / cfg.count) * 0.6;
-          // extend slightly past canvas edges so parallax shifts don't reveal gaps
+        const count = Math.max(2, Math.ceil(cfg.count * s.profile.bgLayerScale));
+        for (let i = 0; i < count; i++) {
+          const slot = (i + 0.5) / count;
+          const jitter = (Math.random() - 0.5) * (1 / count) * 0.6;
           const x = lerp(-0.08, 1.08, slot + jitter) * s.width;
           const y = s.height - 4 + Math.random() * 6;
           const scale = lerp(cfg.scaleMin, cfg.scaleMax, Math.random());
@@ -337,7 +335,7 @@ export default function InteractiveTree() {
         }
         s.bgLayers.push({
           trees,
-          blur: cfg.blur,
+          blur: cfg.blur * s.profile.blurScale,
           alpha: cfg.alpha,
           parallax: cfg.parallax,
           leafLightDelta: cfg.leafLightDelta,
@@ -356,7 +354,7 @@ export default function InteractiveTree() {
     const seedFireflies = () => {
       const s = stateRef.current;
       s.fireflies = [];
-      for (let i = 0; i < FIREFLY_COUNT; i++) {
+      for (let i = 0; i < s.profile.fireflyCount; i++) {
         s.fireflies.push({
           x: Math.random() * s.width,
           y: Math.random() * s.height * 0.85,
@@ -372,7 +370,7 @@ export default function InteractiveTree() {
     const seedStars = () => {
       const s = stateRef.current;
       s.stars = [];
-      for (let i = 0; i < STAR_COUNT; i++) {
+      for (let i = 0; i < s.profile.starCount; i++) {
         const big = Math.random() < 0.06;
         s.stars.push({
           x: Math.random() * s.width,
@@ -387,10 +385,17 @@ export default function InteractiveTree() {
     };
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
       const s = stateRef.current;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       s.width = canvas.offsetWidth;
       s.height = canvas.offsetHeight;
+      s.profile = qualityProfile({
+        width: s.width,
+        height: s.height,
+        dpr: window.devicePixelRatio || 1,
+        reducedMotion,
+      });
+      const dpr = Math.min(window.devicePixelRatio || 1, s.profile.dprCap);
       canvas.width = s.width * dpr;
       canvas.height = s.height * dpr;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -403,6 +408,8 @@ export default function InteractiveTree() {
 
     resize();
     window.addEventListener('resize', resize);
+    const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+    motionMQ.addEventListener('change', resize);
 
     // ------------------------------------------------------------------------
     // POINTER
@@ -997,6 +1004,7 @@ export default function InteractiveTree() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
+      motionMQ.removeEventListener('change', resize);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointerdown', onPointerDown);
