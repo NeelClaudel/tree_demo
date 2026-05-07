@@ -242,7 +242,8 @@ export default function InteractiveTree() {
       const baseX = s.width / 2;
       const baseY = s.height - s.safeBottom - 10;
       const usableHeight = Math.max(s.height - s.safeTop - s.safeBottom, 1);
-      const initialLength = Math.min(usableHeight * 0.18, 130);
+      const usableWidth = Math.max(s.width, 1);
+      const initialLength = Math.min(usableHeight * 0.18, usableWidth * 0.22, 130);
       s.baseX = baseX;
       s.baseY = baseY;
 
