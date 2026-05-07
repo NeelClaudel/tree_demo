@@ -1071,7 +1071,7 @@ export default function InteractiveTree() {
           mixBlendMode: 'difference',
         }}
       >
-        a small world · move your cursor to see the depth
+        a small world ...
       </div>
     </div>
   );

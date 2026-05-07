@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(Get-Location)",
+      "Bash(npm test *)",
+      "Bash(git commit *)",
+      "Bash(npm ls *)",
+      "Bash(Select-String -Pattern 'vitest')",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000)",
+      "PowerShell(Get-Process *)",
+      "Bash(curl http://localhost:3000)",
+      "Bash(git push *)"
+    ]
+  }
+}
