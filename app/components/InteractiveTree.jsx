@@ -1045,12 +1045,15 @@ export default function InteractiveTree() {
       <div
         style={{
           position: 'absolute',
-          top: 28,
-          left: 32,
+          top: 'max(20px, calc(env(safe-area-inset-top) + 8px))',
+          left: 'max(20px, calc(env(safe-area-inset-left) + 8px))',
+          right: 'max(20px, calc(env(safe-area-inset-right) + 8px))',
           color: '#d4a574',
           fontFamily: 'Georgia, "Times New Roman", serif',
           fontStyle: 'italic',
-          fontSize: 15,
+          fontSize: 'clamp(11px, 2.6vw, 15px)',
+          lineHeight: 1.35,
+          maxWidth: 'min(70ch, 100%)',
           letterSpacing: 0.5,
           pointerEvents: 'none',
           textShadow: '0 0 12px rgba(0,0,0,0.8)',
