@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useRef } from 'react';
 
 // ============================================================================
@@ -622,32 +620,45 @@ export default function InteractiveTree() {
         const moonEnd = 1.0;
         if (dayPhase >= moonStart && dayPhase <= moonEnd) {
           const mp = (dayPhase - moonStart) / (moonEnd - moonStart);
-          const moonX = lerp(0.88, 0.12, mp) * s.width;
-          const moonY = (0.50 - 0.40 * Math.sin(mp * Math.PI)) * s.height;
           const moonR = 28;
+          // edge-to-edge horizontal: starts at left edge, ends at right edge
+          const moonX = lerp(0, s.width, mp);
+          // gentle arc: low at edges, high at zenith
+          const moonY = (0.62 - 0.50 * Math.sin(mp * Math.PI)) * s.height;
           const moonAlpha = nightFactor;
 
-          const halo = ctx.createRadialGradient(moonX, moonY, moonR * 0.6, moonX, moonY, moonR * 5);
-          halo.addColorStop(0, `rgba(240, 230, 200, ${0.18 * moonAlpha})`);
-          halo.addColorStop(1, 'rgba(240, 230, 200, 0)');
+          // outer halo
+          const halo = ctx.createRadialGradient(moonX, moonY, moonR * 0.7, moonX, moonY, moonR * 6);
+          halo.addColorStop(0, `rgba(245, 235, 205, ${0.16 * moonAlpha})`);
+          halo.addColorStop(0.5, `rgba(245, 235, 205, ${0.05 * moonAlpha})`);
+          halo.addColorStop(1, 'rgba(245, 235, 205, 0)');
           ctx.fillStyle = halo;
-          ctx.fillRect(moonX - moonR * 5, moonY - moonR * 5, moonR * 10, moonR * 10);
+          ctx.fillRect(moonX - moonR * 6, moonY - moonR * 6, moonR * 12, moonR * 12);
 
-          ctx.fillStyle = `rgba(245, 238, 215, ${0.92 * moonAlpha})`;
+          // disc
+          ctx.fillStyle = `rgba(248, 242, 220, ${0.95 * moonAlpha})`;
           ctx.beginPath();
           ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
           ctx.fill();
 
+          // subtle craters, clipped to disc
           ctx.save();
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.beginPath();
-          ctx.arc(moonX - moonR * 0.45, moonY - moonR * 0.15, moonR * 0.92, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-          ctx.fillStyle = `rgba(245, 238, 215, ${0.25 * moonAlpha})`;
           ctx.beginPath();
           ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.clip();
+          ctx.fillStyle = `rgba(195, 185, 158, ${0.42 * moonAlpha})`;
+          const craters = [
+            { dx: -0.32, dy: -0.18, r: 0.20 },
+            { dx: 0.22,  dy: 0.24,  r: 0.16 },
+            { dx: 0.32,  dy: -0.30, r: 0.10 },
+            { dx: -0.20, dy: 0.32,  r: 0.13 },
+          ];
+          for (const c of craters) {
+            ctx.beginPath();
+            ctx.arc(moonX + c.dx * moonR, moonY + c.dy * moonR, c.r * moonR, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
         }
       }
 
